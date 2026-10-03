@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    container_name: usuarios-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5433:5432"   # 5433 en tu PC para no chocar con un Postgres local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: usuarios-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/usuarios_db
+      DB_USER: postgres
+      DB_PASSWORD: 12345678
+      JWT_SECRET: una-clave-secreta-muy-larga-y-dificil-de-adivinar-2026-utesa
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:

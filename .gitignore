@@ -1,0 +1,10 @@
+target/
+build/
+.dart_tool/
+.gradle/
+.idea/
+uploads/
+*.tfstate
+*.tfstate.*
+.terraform/
+.env
