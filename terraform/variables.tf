@@ -8,6 +8,11 @@ variable "project_name" {
   default = "usuarios-api"
 }
 
+variable "lwa_layer_version" {
+  type    = string
+  default = "27"
+}
+
 variable "db_url" {
   type = string
 }
