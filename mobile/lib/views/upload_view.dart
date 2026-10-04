@@ -19,12 +19,13 @@ class _UploadViewState extends State<UploadView> {
     super.initState();
     // Al entrar a la pantalla, borramos el resultado de la subida anterior
     Future.microtask(() {
+      // ignore: use_build_context_synchronously
       final vm = context.read<UploadViewModel>();
       vm.urlSubida = null;
       vm.errorMessage = null;
     });
   }
-  
+
   Future<void> _elegirImagen() async {
     final picker = ImagePicker();
     final imagen = await picker.pickImage(source: ImageSource.gallery);
@@ -90,7 +91,8 @@ class _UploadViewState extends State<UploadView> {
 
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _archivoSeleccionado == null || uploadViewModel.isUploading
+              onPressed:
+                  _archivoSeleccionado == null || uploadViewModel.isUploading
                   ? null
                   : _subir,
               child: const Text('Subir'),

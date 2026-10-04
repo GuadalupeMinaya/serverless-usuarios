@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class UploadController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Object> subir(@RequestParam("file") MultipartFile file) {
+    public Map<String, Object> subir(@RequestParam("file") MultipartFile file) throws IOException {
         String nombreGuardado = storage.guardar(file);
 
         String url = ServletUriComponentsBuilder.fromCurrentContextPath()

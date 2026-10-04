@@ -73,7 +73,7 @@ class UserViewModel extends ChangeNotifier {
       ]);
 
       usuarios = resultados[0] as List<User>;
-      totalArchivos = (resultados[1] as List).length;
+      totalArchivos = (resultados[1]).length;
     } catch (e) {
       errorMessage = 'No se pudieron cargar los datos';
     }
@@ -83,11 +83,11 @@ class UserViewModel extends ChangeNotifier {
   }
 
   Future<bool> crearUsuario(
-      String nombre,
-      String email,
-      String password, {
-        String? fotoUrl,
-      }) async {
+    String nombre,
+    String email,
+    String password, {
+    String? fotoUrl,
+  }) async {
     try {
       final nuevo = User(
         nombre: nombre,
@@ -108,12 +108,12 @@ class UserViewModel extends ChangeNotifier {
   }
 
   Future<bool> actualizarUsuario(
-      int id,
-      String nombre,
-      String email,
-      String? password, {
-        String? fotoUrl,
-      }) async {
+    int id,
+    String nombre,
+    String email,
+    String? password, {
+    String? fotoUrl,
+  }) async {
     try {
       final editado = User(
         nombre: nombre,

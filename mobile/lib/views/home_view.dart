@@ -21,7 +21,8 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
 
     Future.microtask(
-          () => context.read<UserViewModel>().cargarDatosIniciales(),
+      // ignore: use_build_context_synchronously
+      () => context.read<UserViewModel>().cargarDatosIniciales(),
     );
   }
 
@@ -37,9 +38,7 @@ class _HomeViewState extends State<HomeView> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Cerrar sesión'),
-          content: const Text(
-            '¿Deseas cerrar la sesión actual?',
-          ),
+          content: const Text('¿Deseas cerrar la sesión actual?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -61,25 +60,18 @@ class _HomeViewState extends State<HomeView> {
     if (!mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => const LoginView(),
-      ),
-          (route) => false,
+      MaterialPageRoute(builder: (_) => const LoginView()),
+      (route) => false,
     );
   }
 
-  Future<void> _confirmarEliminar(
-      int id,
-      String nombre,
-      ) async {
+  Future<void> _confirmarEliminar(int id, String nombre) async {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Eliminar usuario'),
-          content: Text(
-            '¿Estás segura de que deseas eliminar a $nombre?',
-          ),
+          content: Text('¿Estás segura de que deseas eliminar a $nombre?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -98,16 +90,13 @@ class _HomeViewState extends State<HomeView> {
     );
 
     if (confirmar == true && mounted) {
-      final exito =
-      await context.read<UserViewModel>().eliminarUsuario(id);
+      final exito = await context.read<UserViewModel>().eliminarUsuario(id);
 
       if (!mounted) return;
 
       if (exito) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Usuario eliminado correctamente'),
-          ),
+          const SnackBar(content: Text('Usuario eliminado correctamente')),
         );
       }
     }
@@ -131,299 +120,256 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () =>
-            context.read<UserViewModel>().cargarDatosIniciales(),
+        onRefresh: () => context.read<UserViewModel>().cargarDatosIniciales(),
         child: userViewModel.isLoading
-            ? const Center(
-          child: CircularProgressIndicator(),
-        )
+            ? const Center(child: CircularProgressIndicator())
             : ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoCard(
-                    icon: Icons.people_alt_outlined,
-                    titulo: 'Usuarios',
-                    valor:
-                    userViewModel.usuarios.length.toString(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _InfoCard(
-                    icon: Icons.cloud_upload_outlined,
-                    titulo: 'Archivos',
-                    valor:
-                    userViewModel.totalArchivos.toString(),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
                 children: [
-                  Icon(
-                    Icons.sync_alt,
-                    color: Colors.blue.shade700,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Los usuarios y los archivos se cargan simultáneamente',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue.shade900,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.people_alt_outlined,
+                          titulo: 'Usuarios',
+                          valor: userViewModel.usuarios.length.toString(),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            TextField(
-              controller: _searchController,
-              onChanged: userViewModel.buscar,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre o correo',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                _searchController.text.isNotEmpty
-                    ? IconButton(
-                  onPressed: () {
-                    _searchController.clear();
-                    userViewModel
-                        .limpiarBusqueda();
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.clear),
-                )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius:
-                  BorderRadius.circular(12),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Lista de usuarios',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${usuarios.length} resultado(s)',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            if (userViewModel.errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius:
-                  BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        userViewModel.errorMessage!,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.cloud_upload_outlined,
+                          titulo: 'Archivos',
+                          valor: userViewModel.totalArchivos.toString(),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              )
-            else if (usuarios.isEmpty)
-              Container(
-                padding:
-                const EdgeInsets.symmetric(
-                  vertical: 40,
-                  horizontal: 20,
-                ),
-                alignment: Alignment.center,
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.person_search,
-                      size: 50,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      userViewModel.busqueda.isEmpty
-                          ? 'No hay usuarios registrados.'
-                          : 'No se encontraron usuarios.',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              ...usuarios.map((usuario) {
-                return Card(
-                  margin:
-                  const EdgeInsets.only(bottom: 12),
-                  elevation: 1.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                    BorderRadius.circular(14),
+                    ],
                   ),
-                  child: Padding(
-                    padding:
-                    const EdgeInsets.all(14),
+
+                  const SizedBox(height: 14),
+
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 26,
-                          backgroundColor:
-                          Colors.blue.shade50,
-                          child: Text(
-                            usuario.nombre.isNotEmpty
-                                ? usuario.nombre[0]
-                                .toUpperCase()
-                                : '?',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight:
-                              FontWeight.bold,
-                              color:
-                              Colors.blue.shade700,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 14),
-
+                        Icon(Icons.sync_alt, color: Colors.blue.shade700),
+                        const SizedBox(width: 10),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                usuario.nombre,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight:
-                                  FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                usuario.email,
-                                style: TextStyle(
-                                  color:
-                                  Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            'Los usuarios y los archivos se cargan simultáneamente',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue.shade900,
+                            ),
                           ),
-                        ),
-
-                        PopupMenuButton<String>(
-                          tooltip: 'Opciones',
-                          onSelected: (value) {
-                            if (value == 'editar') {
-                              Navigator.of(context)
-                                  .push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      UserFormView(
-                                        usuario: usuario,
-                                      ),
-                                ),
-                              );
-                            }
-
-                            if (value == 'eliminar' &&
-                                usuario.id != null) {
-                              _confirmarEliminar(
-                                usuario.id!,
-                                usuario.nombre,
-                              );
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'editar',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit_outlined),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Editar',
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'eliminar',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                  ),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Eliminar',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
                   ),
-                );
-              }),
-          ],
-        ),
+
+                  const SizedBox(height: 18),
+
+                  TextField(
+                    controller: _searchController,
+                    onChanged: userViewModel.buscar,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por nombre o correo',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                userViewModel.limpiarBusqueda();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.clear),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Lista de usuarios',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${usuarios.length} resultado(s)',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  if (userViewModel.errorMessage != null)
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(userViewModel.errorMessage!)),
+                        ],
+                      ),
+                    )
+                  else if (usuarios.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 40,
+                        horizontal: 20,
+                      ),
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.person_search,
+                            size: 50,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            userViewModel.busqueda.isEmpty
+                                ? 'No hay usuarios registrados.'
+                                : 'No se encontraron usuarios.',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ...usuarios.map((usuario) {
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 1.5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Colors.blue.shade50,
+                                child: Text(
+                                  usuario.nombre.isNotEmpty
+                                      ? usuario.nombre[0].toUpperCase()
+                                      : '?',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 14),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      usuario.nombre,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      usuario.email,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              PopupMenuButton<String>(
+                                tooltip: 'Opciones',
+                                onSelected: (value) {
+                                  if (value == 'editar') {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            UserFormView(usuario: usuario),
+                                      ),
+                                    );
+                                  }
+
+                                  if (value == 'eliminar' &&
+                                      usuario.id != null) {
+                                    _confirmarEliminar(
+                                      usuario.id!,
+                                      usuario.nombre,
+                                    );
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'editar',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.edit_outlined),
+                                        SizedBox(width: 10),
+                                        Text('Editar'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'eliminar',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.red,
+                                        ),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Eliminar',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) =>
-              const UserFormView(usuario: null),
+              builder: (_) => const UserFormView(usuario: null),
             ),
           );
         },
@@ -450,33 +396,20 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.grey.shade300,
-        ),
+        border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: Colors.blue.shade700,
-          ),
+          Icon(icon, color: Colors.blue.shade700),
           const SizedBox(height: 10),
           Text(
             valor,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 3),
-          Text(
-            titulo,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-            ),
-          ),
+          Text(titulo, style: TextStyle(color: Colors.grey.shade600)),
         ],
       ),
     );
