@@ -8,3 +8,5 @@ uploads/
 *.tfstate.*
 .terraform/
 .env
+
+backend/lambda-package/app.jar
