@@ -97,7 +97,7 @@ class UserViewModel extends ChangeNotifier {
       );
 
       await _userRepository.crearUsuario(nuevo);
-      await cargarUsuarios();
+      await cargarDatosIniciales();
 
       return true;
     } catch (e) {
@@ -123,7 +123,7 @@ class UserViewModel extends ChangeNotifier {
       );
 
       await _userRepository.actualizarUsuario(id, editado);
-      await cargarUsuarios();
+      await cargarDatosIniciales();
 
       return true;
     } catch (e) {

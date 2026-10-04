@@ -7,21 +7,21 @@ class ApiService {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   ApiService()
-      : dio = Dio(
-    BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
-    ),
-  ) {
+    : dio = Dio(
+        BaseOptions(
+          baseUrl: ApiConstants.baseUrl,
+          connectTimeout: const Duration(seconds: 40),
+          receiveTimeout: const Duration(seconds: 40),
+          sendTimeout: const Duration(seconds: 40),
+        ),
+      ) {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           // Login y registro NO necesitan JWT.
           final esRutaDeAutenticacion =
               options.path == ApiConstants.login ||
-                  options.path == ApiConstants.register;
+              options.path == ApiConstants.register;
 
           if (!esRutaDeAutenticacion) {
             final token = await storage.read(key: 'jwt_token');
