@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: us-east-1
-  AWS_DEFAULT_REGION: us-east-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
   TF_VAR_db_url: ${{ secrets.DATABASE_URL }}
   TF_VAR_db_user: ${{ secrets.DB_USER }}
   TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
@@ -49,18 +49,26 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build y test
+      - name: Instalar dependencias
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B dependency:resolve
+
+      - name: Test
         working-directory: backend
         env:
           DB_URL: jdbc:postgresql://localhost:5432/usuarios_test
           DB_USER: postgres
           DB_PASSWORD: postgres
           JWT_SECRET: secreto-solo-para-tests-0123456789-0123456789
-        run: |
-          chmod +x mvnw
-          ./mvnw -B package
+        run: ./mvnw -B test
 
-      - name: Preparar paquete Lambda
+      - name: Build
+        working-directory: backend
+        run: ./mvnw -B package -DskipTests
+
+      - name: Empaquetar Lambda
         run: cp backend/target/*.jar backend/lambda-package/app.jar
 
       - name: Setup Terraform
@@ -71,7 +79,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform init
         working-directory: terraform
@@ -85,6 +93,6 @@ jobs:
         working-directory: terraform
         run: terraform plan -input=false -out=tfplan
 
-      - name: Terraform apply
+      - name: Terraform apply (Deploy Lambda)
         working-directory: terraform
         run: terraform apply -input=false -auto-approve tfplan
