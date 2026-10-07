@@ -93,6 +93,7 @@ resource "aws_lambda_function" "api" {
       DB_PASSWORD             = var.db_password
       JWT_SECRET              = var.jwt_secret
       S3_BUCKET               = aws_s3_bucket.uploads.id
+      SNS_TOPIC_ARN           = aws_sns_topic.notifications.arn
     }
   }
 
@@ -131,4 +132,157 @@ resource "aws_lambda_permission" "apigw" {
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+
+
+# ======================================================================
+# NOTIFICACIONES: Lambda principal -> SNS -> SQS -> notification-lambda -> SES
+# ======================================================================
+
+# ---------- SNS Topic ----------
+resource "aws_sns_topic" "notifications" {
+  name = "${var.project_name}-notifications"
+}
+
+# El backend (Lambda principal) puede publicar en el topic
+resource "aws_iam_role_policy" "sns_publish" {
+  name = "sns-publish"
+  role = aws_iam_role.lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "sns:Publish"
+      Resource = aws_sns_topic.notifications.arn
+    }]
+  })
+}
+
+# ---------- SQS Queue (con cola de errores) ----------
+resource "aws_sqs_queue" "notifications_dlq" {
+  name                      = "${var.project_name}-notifications-dlq"
+  message_retention_seconds = 1209600
+}
+
+resource "aws_sqs_queue" "notifications" {
+  name                       = "${var.project_name}-notifications"
+  visibility_timeout_seconds = 90
+  message_retention_seconds  = 345600
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.notifications_dlq.arn
+    maxReceiveCount     = 3
+  })
+}
+
+# Permite que SNS escriba en la cola (solo desde nuestro topic)
+resource "aws_sqs_queue_policy" "notifications" {
+  queue_url = aws_sqs_queue.notifications.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AllowSNSPublish"
+      Effect    = "Allow"
+      Principal = { Service = "sns.amazonaws.com" }
+      Action    = "sqs:SendMessage"
+      Resource  = aws_sqs_queue.notifications.arn
+      Condition = {
+        ArnEquals = { "aws:SourceArn" = aws_sns_topic.notifications.arn }
+      }
+    }]
+  })
+}
+
+# ---------- Suscripcion SNS -> SQS ----------
+resource "aws_sns_topic_subscription" "notifications" {
+  topic_arn            = aws_sns_topic.notifications.arn
+  protocol             = "sqs"
+  endpoint             = aws_sqs_queue.notifications.arn
+  raw_message_delivery = true
+
+  depends_on = [aws_sqs_queue_policy.notifications]
+}
+
+# ---------- IAM de notification-lambda ----------
+resource "aws_iam_role" "notification" {
+  name = "notification-lambda-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "notification_logs" {
+  role       = aws_iam_role.notification.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "notification_sqs_ses" {
+  name = "sqs-ses"
+  role = aws_iam_role.notification.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+        Resource = aws_sqs_queue.notifications.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = "ses:SendEmail"
+        Resource = "arn:aws:ses:${var.aws_region}:${local.suffix}:identity/*"
+      }
+    ]
+  })
+}
+
+# ---------- CloudWatch Logs de notification-lambda ----------
+resource "aws_cloudwatch_log_group" "notification" {
+  name              = "/aws/lambda/notification-lambda"
+  retention_in_days = 7
+}
+
+# ---------- notification-lambda ----------
+data "archive_file" "notification" {
+  type        = "zip"
+  source_file = "${path.module}/notification-lambda/lambda_function.py"
+  output_path = "${path.module}/notification-lambda.zip"
+}
+
+resource "aws_lambda_function" "notification" {
+  function_name = "notification-lambda"
+  role          = aws_iam_role.notification.arn
+  runtime       = "python3.12"
+  handler       = "lambda_function.handler"
+  memory_size   = 128
+  timeout       = 15
+
+  filename         = data.archive_file.notification.output_path
+  source_code_hash = data.archive_file.notification.output_base64sha256
+
+  environment {
+    variables = {
+      SENDER_EMAIL = var.ses_sender_email
+    }
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.notification,
+    aws_iam_role_policy_attachment.notification_logs,
+  ]
+}
+
+# ---------- Event Source Mapping: SQS -> notification-lambda ----------
+resource "aws_lambda_event_source_mapping" "notifications" {
+  event_source_arn        = aws_sqs_queue.notifications.arn
+  function_name           = aws_lambda_function.notification.arn
+  batch_size              = 5
+  function_response_types = ["ReportBatchItemFailures"]
+
+  depends_on = [aws_iam_role_policy.notification_sqs_ses]
 }

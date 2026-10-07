@@ -30,3 +30,8 @@ variable "jwt_secret" {
   type      = string
   sensitive = true
 }
+
+variable "ses_sender_email" {
+  type      = string
+  sensitive = true
+}

@@ -8,7 +8,7 @@ terraform {
     }
   }
 
-    backend "s3" {
+  backend "s3" {
     bucket       = "usuarios-api-tfstate-609394381485"
     key          = "usuarios/terraform.tfstate"
     region       = "us-east-1"
