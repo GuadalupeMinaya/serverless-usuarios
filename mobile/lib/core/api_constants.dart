@@ -5,4 +5,5 @@ class ApiConstants {
   static const String register = '/auth/register';
   static const String usuarios = '/api/usuarios';
   static const String upload = '/upload';
+  static const String notificationsSend = '/notifications/send';
 }

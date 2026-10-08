@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'login_view.dart';
 import 'user_form_view.dart';
+import 'notification_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -112,6 +112,15 @@ class _HomeViewState extends State<HomeView> {
         title: const Text('Gestión de usuarios'),
         centerTitle: false,
         actions: [
+          IconButton(
+            tooltip: 'Enviar correo',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationView()),
+              );
+            },
+            icon: const Icon(Icons.mail_outline),
+          ),
           IconButton(
             tooltip: 'Cerrar sesión',
             onPressed: _cerrarSesion,

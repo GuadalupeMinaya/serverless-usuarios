@@ -8,19 +8,29 @@ import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/user_viewmodel.dart';
 import 'viewmodels/upload_viewmodel.dart';
 import 'views/login_view.dart';
+import 'repositories/notification_repository.dart';
+import 'viewmodels/notification_viewmodel.dart';
 
 void main() {
   final apiService = ApiService();
   final authRepository = AuthRepository(apiService);
   final userRepository = UserRepository(apiService);
   final uploadRepository = UploadRepository(apiService);
+  final notificationRepository = NotificationRepository(apiService);
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel(authRepository)),
-        ChangeNotifierProvider(create: (_) => UserViewModel(userRepository, uploadRepository)),
-        ChangeNotifierProvider(create: (_) => UploadViewModel(uploadRepository)),
+        ChangeNotifierProvider(
+          create: (_) => UserViewModel(userRepository, uploadRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UploadViewModel(uploadRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationViewModel(notificationRepository),
+        ),
       ],
       child: const MyApp(),
     ),
