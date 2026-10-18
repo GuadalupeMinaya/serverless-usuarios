@@ -35,3 +35,8 @@ variable "ses_sender_email" {
   type      = string
   sensitive = true
 }
+
+variable "notification_dry_run" {
+  type    = bool
+  default = false
+}
