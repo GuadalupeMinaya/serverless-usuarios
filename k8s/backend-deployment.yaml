@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usuarios-backend
+  labels:
+    app: usuarios-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: usuarios-backend
+  template:
+    metadata:
+      labels:
+        app: usuarios-backend
+    spec:
+      containers:
+        - name: backend
+          image: usuarios-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: AWS_REGION
+              value: "us-east-1"
+          envFrom:
+            - secretRef:
+                name: usuarios-secrets
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5

@@ -1,0 +1,7 @@
+target
+lambda-package
+uploads
+.idea
+.git
+*.md
+docker-compose.yml
