@@ -4,7 +4,7 @@ metadata:
   name: hola-cronjob
 spec:
   schedule: "*/2 * * * *"
-  suspend: true
+  suspend: false
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 2
   jobTemplate:
